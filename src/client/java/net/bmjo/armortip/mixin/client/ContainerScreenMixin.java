@@ -5,7 +5,7 @@ import net.bmjo.armortip.client.gui.tooltip.LeftTooltipPositioner;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.item.ArmorItem;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.Equipment;
 import net.minecraft.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
@@ -18,8 +18,7 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 public class ContainerScreenMixin {
     @Inject(method = "drawMouseoverTooltip", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawTooltip(Lnet/minecraft/client/font/TextRenderer;Ljava/util/List;Ljava/util/Optional;II)V", shift = At.Shift.AFTER), locals = LocalCapture.CAPTURE_FAILHARD)
     public void renderArmorTip(DrawContext drawContext, int mouseX, int mouseY, CallbackInfo ci, ItemStack itemStack) {
-        if (itemStack.getItem() instanceof Equipment) {
+        if (itemStack.getItem() instanceof Equipment || itemStack.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof Equipment)
             ArmortipRenderer.renderArmorTip(drawContext, itemStack, mouseX, mouseY, MinecraftClient.getInstance().player, LeftTooltipPositioner.INSTANCE);
-        }
     }
 }
