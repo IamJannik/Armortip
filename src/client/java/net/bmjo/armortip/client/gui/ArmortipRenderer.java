@@ -24,6 +24,7 @@ public class ArmortipRenderer {
     public static final int WIDTH = SIZE;
     public static final int HEIGHT = SIZE * 2;
     public static final int MARGIN = 6;
+    public static int time = 0;
 
     public static void renderArmorTip(DrawContext drawContext, ItemStack armorStack, int mouseX, int mouseY, PlayerEntity player, TooltipPositioner tooltipPositioner, boolean drawBG) {
         if (!(ArmortipUtil.isTipItem(armorStack)))
@@ -36,19 +37,18 @@ public class ArmortipRenderer {
         drawContext.getMatrices().push();
 
         if (drawBG)
-            drawContext.draw(() -> TooltipBackgroundRenderer.render(drawContext, startX, startY, WIDTH, HEIGHT, 400));
+            TooltipBackgroundRenderer.render(drawContext, startX, startY, WIDTH, HEIGHT, 400);
         drawContext.getMatrices().translate(0.0F, 0.0F, 400.0F);
 
         try {
-            renderEntityWithArmor(drawContext, armorStack, startX + WIDTH / 2, startY + HEIGHT - 2, SIZE, mouseX, mouseY, player);
+            renderEntityWithArmor(drawContext, armorStack, startX + WIDTH / 2, startY + HEIGHT - 2, player);
         } catch (IllegalArgumentException e) {
             ArmortipClient.LOGGER.error("Item is not an equipment item", e);
         }
-
         drawContext.getMatrices().pop();
     }
 
-    private static void renderEntityWithArmor(DrawContext drawContext, ItemStack armorStack, int x, int y, int size, float mouseX, float mouseY, PlayerEntity player) {
+    private static void renderEntityWithArmor(DrawContext drawContext, ItemStack armorStack, int x, int y, PlayerEntity player) {
         EquipmentSlot slot;
         if (armorStack.getItem() instanceof Equipment equipment)
             slot = equipment.getSlotType();
@@ -64,38 +64,39 @@ public class ArmortipRenderer {
         ItemStack originalArmor = player.getEquippedStack(slot);
         int slotId = slot == EquipmentSlot.OFFHAND ? 0 : slot.getEntitySlotId();
 
-        float m = player.bodyYaw;
-        float n = player.getYaw();
-        float o = player.getPitch();
-        float q = player.headYaw;
-        float p = player.prevHeadYaw;
+        float bodyYaw = player.bodyYaw;
+        float yaw = player.getYaw();
+        float pitch = player.getPitch();
+        float headYaw = player.headYaw;
+        float prevHeadYaw = player.prevHeadYaw;
 
-        float h = (float) Math.atan((mouseX - drawContext.getScaledWindowWidth() / 2.0F) / 40.0F); //TODO VIEW
-        float l = (float)Math.atan((mouseY - drawContext.getScaledWindowHeight() / 2.0F) / 40.0F);
+        float yRot = (float) Math.atan(80 * Math.cos(time / 300.0F) / 40.0F);
+        float xRot = (float) Math.atan(20 * Math.sin(2 * time / 300.0F) / 40.0F);
+        time++;
+        time %= (int) (2 * Math.PI * 300.0F);
 
         Quaternionf quaternionf = new Quaternionf().rotateZ(3.1415927F);
-        Quaternionf quaternionf2 = new Quaternionf().rotateX(l * 20.0F * 0.017453292F);
+        Quaternionf quaternionf2 = new Quaternionf().rotateX(xRot * 20.0F * 0.017453292F);
         quaternionf.mul(quaternionf2);
-
 
         try {
             inventory.set(slotId, armorStack);
 
-            player.bodyYaw = 180.0F + h * 10.0F;
-            player.setYaw(180.0F + h * 20.0F);
-            player.setPitch(-l * 10.0F);
+            player.bodyYaw = 180.0F + yRot * 10.0F;
+            player.setYaw(180.0F + yRot * 20.0F);
+            player.setPitch(-xRot * 10.0F);
             player.headYaw = player.getYaw();
             player.prevHeadYaw = player.getYaw();
 
-            InventoryScreen.drawEntity(drawContext, x, y, size, new Vector3f(), quaternionf, quaternionf2, player);
+            InventoryScreen.drawEntity(drawContext, x, y, ArmortipRenderer.SIZE, new Vector3f(), quaternionf, quaternionf2, player);
         } finally {
             inventory.set(slotId, originalArmor);
 
-            player.bodyYaw = m;
-            player.setYaw(n);
-            player.setPitch(o);
-            player.headYaw = q;
-            player.prevHeadYaw = p;
+            player.bodyYaw = bodyYaw;
+            player.setYaw(yaw);
+            player.setPitch(pitch);
+            player.headYaw = headYaw;
+            player.prevHeadYaw = prevHeadYaw;
         }
     }
 }
