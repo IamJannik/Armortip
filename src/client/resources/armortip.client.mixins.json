@@ -1,11 +1,14 @@
 {
-	"required": true,
-	"package": "net.bmjo.armortip.mixin.client",
-	"compatibilityLevel": "JAVA_17",
-	"client": [
-		"ContainerScreenMixin"
-	],
-	"injectors": {
-		"defaultRequire": 1
+  "required": true,
+  "package": "net.bmjo.armortip.mixin.client",
+  "compatibilityLevel": "JAVA_17",
+  "plugin": "net.bmjo.armortip.mixin.plugin.ConditionalMixinPlugin",
+  "client": [
+    "ContainerScreenMixin",
+    "DrawContextMixin",
+    "HandledScreenMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
 	}
 }

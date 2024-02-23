@@ -1,6 +1,9 @@
 package net.bmjo.armortip.client.gui;
 
 import net.bmjo.armortip.ArmortipClient;
+import net.bmjo.armortip.util.ArmortipUtil;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
 import net.minecraft.client.gui.tooltip.TooltipBackgroundRenderer;
@@ -15,25 +18,29 @@ import org.joml.Quaternionf;
 import org.joml.Vector2ic;
 import org.joml.Vector3f;
 
+@Environment(EnvType.CLIENT)
 public class ArmortipRenderer {
-    public static final int SIZE = 24;
+    protected static final int SIZE = 24;
+    public static final int WIDTH = SIZE;
+    public static final int HEIGHT = SIZE * 2;
+    public static final int MARGIN = 6;
 
-    public static void renderArmorTip(DrawContext drawContext, ItemStack armorStack, int mouseX, int mouseY, PlayerEntity player, TooltipPositioner tooltipPositioner) {
-        if (!(armorStack.getItem() instanceof Equipment || armorStack.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof Equipment))
+    public static void renderArmorTip(DrawContext drawContext, ItemStack armorStack, int mouseX, int mouseY, PlayerEntity player, TooltipPositioner tooltipPositioner, boolean drawBG) {
+        if (!(ArmortipUtil.isTipItem(armorStack)))
             return;
-        int armortipWidth = SIZE;
-        int armortipHeight = SIZE * 2;
 
-        Vector2ic vector2ic = tooltipPositioner.getPosition(drawContext.getScaledWindowWidth(), drawContext.getScaledWindowHeight(), mouseX, mouseY, armortipWidth, armortipHeight);
+        Vector2ic vector2ic = tooltipPositioner.getPosition(drawContext.getScaledWindowWidth(), drawContext.getScaledWindowHeight(), mouseX, mouseY, WIDTH, HEIGHT);
+
         int startX = vector2ic.x();
         int startY = vector2ic.y();
         drawContext.getMatrices().push();
-        drawContext.draw(() -> TooltipBackgroundRenderer.render(drawContext, startX, startY, armortipWidth, armortipHeight, 400));
+
+        if (drawBG)
+            drawContext.draw(() -> TooltipBackgroundRenderer.render(drawContext, startX, startY, WIDTH, HEIGHT, 400));
         drawContext.getMatrices().translate(0.0F, 0.0F, 400.0F);
 
         try {
-
-            renderEntityWithArmor(drawContext, armorStack, startX + SIZE / 2, startY + SIZE * 2 - 2, SIZE, mouseX, mouseY, player);
+            renderEntityWithArmor(drawContext, armorStack, startX + WIDTH / 2, startY + HEIGHT - 2, SIZE, mouseX, mouseY, player);
         } catch (IllegalArgumentException e) {
             ArmortipClient.LOGGER.error("Item is not an equipment item", e);
         }
@@ -63,7 +70,7 @@ public class ArmortipRenderer {
         float q = player.headYaw;
         float p = player.prevHeadYaw;
 
-        float h = (float)Math.atan((mouseX - drawContext.getScaledWindowWidth() / 2.0F) / 40.0F);
+        float h = (float) Math.atan((mouseX - drawContext.getScaledWindowWidth() / 2.0F) / 40.0F); //TODO VIEW
         float l = (float)Math.atan((mouseY - drawContext.getScaledWindowHeight() / 2.0F) / 40.0F);
 
         Quaternionf quaternionf = new Quaternionf().rotateZ(3.1415927F);

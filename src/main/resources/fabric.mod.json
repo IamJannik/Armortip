@@ -19,8 +19,7 @@
 			"net.bmjo.armortip.Armortip"
 		],
 		"client": [
-			"net.bmjo.armortip.ArmortipClient"
-		]
+        ]
 	},
 	"mixins": [
 		{

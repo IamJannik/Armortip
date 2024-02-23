@@ -10,4 +10,6 @@ public class ArmortipClient implements ClientModInitializer {
 	public void onInitializeClient() {
 
 	}
+
+
 }
