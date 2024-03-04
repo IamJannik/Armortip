@@ -16,6 +16,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.collection.DefaultedList;
 import org.joml.Quaternionf;
 import org.joml.Vector2ic;
+import org.joml.Vector3f;
 
 @Environment(EnvType.CLIENT)
 public class ArmortipRenderer {
@@ -87,7 +88,7 @@ public class ArmortipRenderer {
             player.headYaw = player.getYaw();
             player.prevHeadYaw = player.getYaw();
 
-            InventoryScreen.drawEntity(drawContext, x, y, ArmortipRenderer.SIZE, quaternionf, quaternionf2, player);
+            InventoryScreen.drawEntity(drawContext, x, y, ArmortipRenderer.SIZE, new Vector3f(), quaternionf, quaternionf2, player);
         } finally {
             inventory.set(slotId, originalArmor);
 
