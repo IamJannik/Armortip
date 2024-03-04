@@ -36,7 +36,7 @@ public class ArmortipPositioner implements TooltipPositioner {
 
     private void preventOverflow(int screenWidth, int screenHeight, Vector2i pos, int width, int height, int offset) {
         if (pos.x + width > screenWidth)
-            pos.x = Math.max(pos.x - 24 - (width + offset + ArmortipRenderer.MARGIN), 4);
+            pos.x = Math.max(pos.x - 24 - (width + offset + ArmortipRenderer.MARGIN), offset);
 
         int i = height + 3;
         if (pos.y + i > screenHeight)
@@ -50,9 +50,9 @@ public class ArmortipPositioner implements TooltipPositioner {
         return getOffset(Screen.getTooltipFromItem(MinecraftClient.getInstance(), itemStack), itemStack.getTooltipData());
     }
 
-    private static int getOffset(List<Text> text, Optional<TooltipData> data) {
+    private static int getOffset(List<Text> text, Optional<TooltipData> tooltips) {
         List<TooltipComponent> list = text.stream().map(Text::asOrderedText).map(TooltipComponent::of).collect(Collectors.toList());
-        data.ifPresent((datax) -> list.add(1, TooltipComponent.of(datax)));
+        tooltips.ifPresent((datax) -> list.add(1, TooltipComponent.of(datax)));
         return getOffset(list);
     }
 
@@ -66,5 +66,4 @@ public class ArmortipPositioner implements TooltipPositioner {
         }
         return offset;
     }
-
 }

@@ -1,6 +1,6 @@
 package net.bmjo.armortip.client.gui;
 
-import net.bmjo.armortip.ArmortipClient;
+import net.bmjo.armortip.Armortip;
 import net.bmjo.armortip.util.ArmortipUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -16,7 +16,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.collection.DefaultedList;
 import org.joml.Quaternionf;
 import org.joml.Vector2ic;
-import org.joml.Vector3f;
 
 @Environment(EnvType.CLIENT)
 public class ArmortipRenderer {
@@ -43,7 +42,7 @@ public class ArmortipRenderer {
         try {
             renderEntityWithArmor(drawContext, armorStack, startX + WIDTH / 2, startY + HEIGHT - 2, player);
         } catch (IllegalArgumentException e) {
-            ArmortipClient.LOGGER.error("Item is not an equipment item", e);
+            Armortip.LOGGER.error("Item is not an equipment item", e);
         }
         drawContext.getMatrices().pop();
     }
@@ -88,7 +87,7 @@ public class ArmortipRenderer {
             player.headYaw = player.getYaw();
             player.prevHeadYaw = player.getYaw();
 
-            InventoryScreen.drawEntity(drawContext, x, y, ArmortipRenderer.SIZE, new Vector3f(), quaternionf, quaternionf2, player);
+            InventoryScreen.drawEntity(drawContext, x, y, ArmortipRenderer.SIZE, quaternionf, quaternionf2, player);
         } finally {
             inventory.set(slotId, originalArmor);
 

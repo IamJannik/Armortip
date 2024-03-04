@@ -30,6 +30,4 @@ public class LeftTooltipPositioner implements TooltipPositioner {
         if (start.y + m > guiHeight)
             start.y = guiHeight - m;
     }
-
-
 }
