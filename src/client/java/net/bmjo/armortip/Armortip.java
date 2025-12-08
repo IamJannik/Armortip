@@ -8,6 +8,5 @@ public class Armortip implements ClientModInitializer {
 	public static final Logger LOGGER = LoggerFactory.getLogger("armortip");
 	@Override
 	public void onInitializeClient() {
-
 	}
 }
