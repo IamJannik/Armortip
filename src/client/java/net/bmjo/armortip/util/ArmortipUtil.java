@@ -2,16 +2,14 @@ package net.bmjo.armortip.util;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Equipment;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.SmithingTemplateItem;
 import net.minecraft.screen.ScreenHandler;
 import org.jetbrains.annotations.Nullable;
 
 public class ArmortipUtil {
     public static boolean isTipItem(ItemStack itemStack) {
-        return itemStack.getItem() instanceof Equipment || itemStack.getItem() instanceof SmithingTemplateItem || itemStack.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof Equipment;
+        return itemStack.get(DataComponentTypes.EQUIPPABLE) != null;
     }
 
     public static boolean shouldExtend() {

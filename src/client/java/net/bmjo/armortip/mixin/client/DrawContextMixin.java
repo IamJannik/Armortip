@@ -12,12 +12,12 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 @ConditionalMixin(modId = "legendarytooltips", applyIfPresent = false)
 public class DrawContextMixin {
     // from bytecode
-    @ModifyVariable(method = "drawTooltip(Lnet/minecraft/client/font/TextRenderer;Ljava/util/List;IILnet/minecraft/client/gui/tooltip/TooltipPositioner;)V", ordinal = 4, at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;getScaledWindowHeight()I", shift = At.Shift.AFTER))
+    @ModifyVariable(method = "drawTooltipImmediately", ordinal = 4, at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;getScaledWindowHeight()I", shift = At.Shift.AFTER))
     private int setWidth(int width) {
         return ArmortipUtil.shouldExtend() ? width + ArmortipRenderer.WIDTH + ArmortipRenderer.MARGIN : width;
     }
 
-    @ModifyVariable(method = "drawTooltip(Lnet/minecraft/client/font/TextRenderer;Ljava/util/List;IILnet/minecraft/client/gui/tooltip/TooltipPositioner;)V", ordinal = 5, at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;getScaledWindowHeight()I", shift = At.Shift.AFTER))
+    @ModifyVariable(method = "drawTooltipImmediately", ordinal = 5, at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;getScaledWindowHeight()I", shift = At.Shift.AFTER))
     private int setHeight(int height) {
         return ArmortipUtil.shouldExtend() ? Math.max(height, ArmortipRenderer.HEIGHT) : height;
     }
