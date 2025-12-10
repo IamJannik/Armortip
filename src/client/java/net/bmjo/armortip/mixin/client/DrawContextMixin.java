@@ -1,6 +1,5 @@
 package net.bmjo.armortip.mixin.client;
 
-import net.bmjo.armortip.client.gui.ArmortipRenderer;
 import net.bmjo.armortip.mixin.annotation.ConditionalMixin;
 import net.bmjo.armortip.util.ArmortipUtil;
 import net.minecraft.client.gui.DrawContext;
@@ -14,11 +13,11 @@ public class DrawContextMixin {
     // from bytecode
     @ModifyVariable(method = "drawTooltipImmediately", ordinal = 4, at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;getScaledWindowHeight()I", shift = At.Shift.AFTER))
     private int setWidth(int width) {
-        return ArmortipUtil.shouldExtend() ? width + ArmortipRenderer.WIDTH + ArmortipRenderer.MARGIN : width;
+        return ArmortipUtil.shouldExtend() ? width + ArmortipUtil.SIZE + ArmortipUtil.MARGIN : width;
     }
 
     @ModifyVariable(method = "drawTooltipImmediately", ordinal = 5, at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;getScaledWindowHeight()I", shift = At.Shift.AFTER))
     private int setHeight(int height) {
-        return ArmortipUtil.shouldExtend() ? Math.max(height, ArmortipRenderer.HEIGHT) : height;
+        return ArmortipUtil.shouldExtend() ? Math.max(height, ArmortipUtil.SIZE) : height;
     }
 }

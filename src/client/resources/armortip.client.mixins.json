@@ -4,9 +4,9 @@
   "compatibilityLevel": "JAVA_17",
   "plugin": "net.bmjo.armortip.mixin.plugin.ConditionalMixinPlugin",
   "client": [
-    "ContainerScreenMixin",
     "DrawContextMixin",
-    "HandledScreenMixin"
+    "HandledScreenMixin",
+    "ItemMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -8,6 +8,9 @@ import net.minecraft.screen.ScreenHandler;
 import org.jetbrains.annotations.Nullable;
 
 public class ArmortipUtil {
+    public static final int SIZE = 48;
+    public static final int MARGIN = 6;
+
     public static boolean isTipItem(ItemStack itemStack) {
         return itemStack.get(DataComponentTypes.EQUIPPABLE) != null;
     }
