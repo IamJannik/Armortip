@@ -12,7 +12,7 @@
 		"sources": "https://github.com/FabricMC/fabric-example-mod"
 	},
 	"license": "CC0-1.0",
-	"icon": "assets/armortip/icon.png",
+	"icon": "assets/armortip/armortip.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [

@@ -9,7 +9,6 @@ import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin(HandledScreen.class)
 public class HandledScreenMixin implements ISlotScreen {
-
     @Shadow
     @Nullable
     protected Slot focusedSlot;

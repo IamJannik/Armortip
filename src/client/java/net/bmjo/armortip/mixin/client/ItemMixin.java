@@ -1,6 +1,6 @@
 package net.bmjo.armortip.mixin.client;
 
-import net.bmjo.armortip.client.gui.tooltip.ArmorTooltipData;
+import net.bmjo.armortip.gui.tooltip.ArmorTooltipData;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipData;

@@ -1,4 +1,4 @@
-package net.bmjo.armortip.client.gui.tooltip;
+package net.bmjo.armortip.gui.tooltip;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipData;

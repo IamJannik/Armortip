@@ -1,6 +1,5 @@
 package net.bmjo.armortip.mixin.client;
 
-import net.bmjo.armortip.mixin.annotation.ConditionalMixin;
 import net.bmjo.armortip.util.ArmortipUtil;
 import net.minecraft.client.gui.DrawContext;
 import org.spongepowered.asm.mixin.Mixin;
@@ -8,7 +7,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
 @Mixin(DrawContext.class)
-@ConditionalMixin(modId = "legendarytooltips", applyIfPresent = false)
 public class DrawContextMixin {
     // from bytecode
     @ModifyVariable(method = "drawTooltipImmediately", ordinal = 4, at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;getScaledWindowHeight()I", shift = At.Shift.AFTER))
