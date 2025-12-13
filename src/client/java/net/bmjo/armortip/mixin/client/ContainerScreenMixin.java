@@ -21,9 +21,9 @@ public class ContainerScreenMixin {
     public void renderArmorTip(DrawContext drawContext, int mouseX, int mouseY, CallbackInfo ci, ItemStack itemStack) {
         if (ArmortipUtil.isTipItem(itemStack)) {
             if (FabricLoader.getInstance().isModLoaded("legendarytooltips"))
-                ArmortipRenderer.renderArmorTip(drawContext, itemStack, mouseX, mouseY, MinecraftClient.getInstance().player, LeftTooltipPositioner.INSTANCE, true);
+                ArmortipRenderer.renderArmortip(drawContext, itemStack, mouseX, mouseY, MinecraftClient.getInstance().player, LeftTooltipPositioner.INSTANCE, true);
             else
-                ArmortipRenderer.renderArmorTip(drawContext, itemStack, mouseX, mouseY, MinecraftClient.getInstance().player, ArmortipPositioner.INSTANCE, false);
+                ArmortipRenderer.renderArmortip(drawContext, itemStack, mouseX, mouseY, MinecraftClient.getInstance().player, ArmortipPositioner.INSTANCE, false);
         }
     }
 }

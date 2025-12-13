@@ -1,13 +1,12 @@
 package net.bmjo.armortip;
 
+import net.bmjo.armortip.util.ArmortipUtil;
 import net.fabricmc.api.ClientModInitializer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 
 public class Armortip implements ClientModInitializer {
-	public static final Logger LOGGER = LoggerFactory.getLogger("armortip");
 	@Override
 	public void onInitializeClient() {
-
+        ClientTickEvents.END_CLIENT_TICK.register(ArmortipUtil::tick);
 	}
 }

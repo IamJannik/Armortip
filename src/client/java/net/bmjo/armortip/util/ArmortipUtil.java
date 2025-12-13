@@ -5,12 +5,15 @@ import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Equipment;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.SmithingTemplateItem;
 import net.minecraft.screen.ScreenHandler;
 import org.jetbrains.annotations.Nullable;
 
 public class ArmortipUtil {
+    public static int ticks;
+
     public static boolean isTipItem(ItemStack itemStack) {
-        return itemStack.getItem() instanceof Equipment || itemStack.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof Equipment;
+        return itemStack.getItem() instanceof Equipment || itemStack.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof Equipment || itemStack.getItem() instanceof SmithingTemplateItem;
     }
 
     public static boolean shouldExtend() {
@@ -24,5 +27,9 @@ public class ArmortipUtil {
             if (handledScreen.getScreenHandler().getCursorStack().isEmpty() && islotScreen.getFocusedSlot() != null && islotScreen.getFocusedSlot().hasStack())
                 return islotScreen.getFocusedSlot().getStack();
         return null;
+    }
+
+    public static void tick(MinecraftClient client) {
+        ticks++;
     }
 }

@@ -14,7 +14,7 @@ public class DrawContextMixin {
     // from bytecode
     @ModifyVariable(method = "drawTooltip(Lnet/minecraft/client/font/TextRenderer;Ljava/util/List;IILnet/minecraft/client/gui/tooltip/TooltipPositioner;)V", ordinal = 4, at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;getScaledWindowHeight()I", shift = At.Shift.AFTER))
     private int setWidth(int width) {
-        return ArmortipUtil.shouldExtend() ? width + ArmortipRenderer.WIDTH + ArmortipRenderer.MARGIN : width;
+        return ArmortipUtil.shouldExtend() ? width + ArmortipRenderer.WIDTH + ArmortipRenderer.MARGIN * 2 : width;
     }
 
     @ModifyVariable(method = "drawTooltip(Lnet/minecraft/client/font/TextRenderer;Ljava/util/List;IILnet/minecraft/client/gui/tooltip/TooltipPositioner;)V", ordinal = 5, at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;getScaledWindowHeight()I", shift = At.Shift.AFTER))
