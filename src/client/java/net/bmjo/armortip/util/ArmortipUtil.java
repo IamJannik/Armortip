@@ -31,5 +31,6 @@ public class ArmortipUtil {
 
     public static void tick(MinecraftClient client) {
         ticks++;
+        ticks %= (int) (2 * Math.PI * 300.0F);
     }
 }

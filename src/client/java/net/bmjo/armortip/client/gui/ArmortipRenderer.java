@@ -94,7 +94,7 @@ public class ArmortipRenderer {
             }
         }
         renderEntity(drawContext, x, y, player);
-        renderMaterial(optMaterial, x, y, drawContext, player.getEntityWorld());
+        renderMaterial(optMaterial, x, y, drawContext);
         for (int i = 0; i < armor.size(); i++) {
             armor.set(i, originalArmor[i]);
         }
@@ -128,7 +128,7 @@ public class ArmortipRenderer {
 
     private static void renderMaterial(RegistryEntry<ArmorTrimMaterial> material, int x, int y, DrawContext drawContext) {
         var item = material.value().ingredient().value();
-        if (item == null) return;
+        if (item == Items.AIR) return;
 
         drawContext.getMatrices().push();
         drawContext.getMatrices().translate(x + ArmortipRenderer.WIDTH - MARGIN, y, 0);
