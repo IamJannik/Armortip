@@ -1,19 +1,18 @@
 package net.bmjo.armortip.gui.tooltip;
 
-import net.bmjo.armortip.Armortip;
 import net.bmjo.armortip.util.ArmortipUtil;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.ingame.InventoryScreen;
 import net.minecraft.client.gui.tooltip.TooltipComponent;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.render.entity.EntityRenderManager;
+import net.minecraft.client.render.entity.EntityRenderer;
+import net.minecraft.client.render.entity.state.EntityRenderState;
+import net.minecraft.client.render.entity.state.LivingEntityRenderState;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.EquippableComponent;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.SpawnReason;
+import net.minecraft.entity.*;
 import net.minecraft.entity.passive.AbstractHorseEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
@@ -74,19 +73,15 @@ public class ArmorTooltipComponent implements TooltipComponent {
 
     private void renderEquipment(PlayerEntity player, int x, int y, int width, DrawContext drawContext) {
         EquippableComponent equippableComponent = this.itemStack.get(DataComponentTypes.EQUIPPABLE);
-        if (equippableComponent == null)
-            return;
-        var slot = equippableComponent.slot();
-        try {
+        if (equippableComponent != null) {
+            var slot = equippableComponent.slot();
             switch (slot.getType()) {
                 case HAND, HUMANOID_ARMOR -> this.renderPlayer(player, slot, x, y, width, drawContext);
-                case ANIMAL_ARMOR, SADDLE ->
-                        this.renderAnimal(player, slot, equippableComponent, x, y, width, drawContext);
-                default -> throw new IllegalArgumentException("Item is not an equipment item");
+                case ANIMAL_ARMOR, SADDLE -> this.renderAnimal(player, slot, equippableComponent, x, y, width, drawContext);
             }
-        } catch (IllegalArgumentException e) {
-            Armortip.LOGGER.error("Item is not an equipment item", e);
+            return;
         }
+        this.renderPlayer(player, EquipmentSlot.MAINHAND, x, y, width, drawContext);
     }
 
     private void renderPlayer(PlayerEntity player, EquipmentSlot slot, int x, int y, int width, DrawContext drawContext) {
@@ -134,12 +129,6 @@ public class ArmorTooltipComponent implements TooltipComponent {
         if (entity == null)
             return;
 
-        float bodyYaw = entity.bodyYaw;
-        float yaw = entity.getYaw();
-        float pitch = entity.getPitch();
-        float headYaw = entity.headYaw;
-        float lastHeadYaw = entity.lastHeadYaw;
-
         float yRot = (float) Math.atan(80 * Math.cos(ArmortipUtil.ticks / 64.0F) / 40.0F);
         float xRot = (float) Math.atan(20 * Math.sin(2 * ArmortipUtil.ticks / 64.0F) / 40.0F);
 
@@ -147,26 +136,27 @@ public class ArmorTooltipComponent implements TooltipComponent {
         Quaternionf quaternionf2 = new Quaternionf().rotateX(xRot * 20.0F * 0.017453292F);
         quaternionf.mul(quaternionf2);
 
-        double size = ArmortipUtil.SIZE * 0.8 / Math.max(entity.getWidth(), entity.getHeight());
+        var size = ArmortipUtil.SIZE * 0.8F / Math.max(entity.getWidth(), entity.getHeight());
+        if (!(entity instanceof PlayerEntity)) {
+            size *= 0.8F;
+        }
+
         Vector3f vector3f = new Vector3f(0.0F, entity.getHeight() * 0.5F, 0.0F);
         if (entity instanceof AbstractHorseEntity) {
-            size *= 0.75;
             vector3f = new Vector3f(0.0F, entity.getHeight() * 0.75F, 0.0F);
         }
 
-        entity.bodyYaw = 200.0F + yRot * 10.0F;
-        entity.setYaw(180.0F + yRot * 20.0F);
-        entity.setPitch(-xRot * 10.0F);
-        entity.headYaw = entity.getYaw();
-        entity.lastHeadYaw = entity.getYaw();
+        var entityRenderState = getEntityRenderState(entity);
+        if (entityRenderState instanceof LivingEntityRenderState livingEntityRenderState) {
+            livingEntityRenderState.bodyYaw = 200.0F + yRot * 10.0F;
+            livingEntityRenderState.relativeHeadYaw = yRot * 5.0F;
+            livingEntityRenderState.pitch = -xRot * 10.0F;
 
-        InventoryScreen.drawEntity(drawContext, x + width - ArmortipUtil.SIZE, y - 10, x + width, y - 10 + ArmortipUtil.SIZE, (float) size, vector3f, quaternionf, quaternionf2, entity);
-
-        entity.bodyYaw = bodyYaw;
-        entity.setYaw(yaw);
-        entity.setPitch(pitch);
-        entity.headYaw = headYaw;
-        entity.lastHeadYaw = lastHeadYaw;
+            livingEntityRenderState.width /= livingEntityRenderState.baseScale;
+            livingEntityRenderState.height /= livingEntityRenderState.baseScale;
+            livingEntityRenderState.baseScale = 1;
+        }
+        drawContext.addEntity(entityRenderState, size, vector3f, quaternionf, quaternionf2, -ArmortipUtil.PADDING + x  + width - ArmortipUtil.SIZE, -ArmortipUtil.PADDING + y - 10, ArmortipUtil.PADDING + x + width, ArmortipUtil.PADDING + y - 10 + ArmortipUtil.SIZE);
     }
 
     private void renderMaterial(RegistryEntry<ArmorTrimMaterial> material, int x, int y, int width, DrawContext drawContext, World world) {
@@ -178,6 +168,16 @@ public class ArmorTooltipComponent implements TooltipComponent {
         drawContext.getMatrices().scale(0.5F);
         drawContext.drawItem(item.value().getDefaultStack(), 0, 0);
         drawContext.getMatrices().popMatrix();
+    }
+
+    private static EntityRenderState getEntityRenderState(LivingEntity entity) {
+        EntityRenderManager entityRenderManager = MinecraftClient.getInstance().getEntityRenderDispatcher();
+        EntityRenderer<? super LivingEntity, ?> entityRenderer = entityRenderManager.getRenderer(entity);
+        EntityRenderState entityRenderState = entityRenderer.getAndUpdateRenderState(entity, 1.0F);
+        entityRenderState.light = 15728880;
+        entityRenderState.shadowPieces.clear();
+        entityRenderState.outlineColor = 0;
+        return entityRenderState;
     }
 
     private static LivingEntity getCachedEntity(World world, EntityType<?> type) {

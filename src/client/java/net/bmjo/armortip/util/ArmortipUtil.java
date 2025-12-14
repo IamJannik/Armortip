@@ -11,10 +11,12 @@ import org.jetbrains.annotations.Nullable;
 public class ArmortipUtil {
     public static final int SIZE = 48;
     public static final int MARGIN = 6;
+    public static final int PADDING = 0;
     public static int ticks;
 
     public static boolean isTipItem(ItemStack itemStack) {
-        return itemStack.get(DataComponentTypes.EQUIPPABLE) != null || itemStack.getItem() instanceof SmithingTemplateItem;
+        return itemStack.get(DataComponentTypes.EQUIPPABLE) != null
+                || itemStack.getItem() instanceof SmithingTemplateItem;
     }
 
     public static boolean shouldExtend() {
