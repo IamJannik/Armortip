@@ -1,7 +1,7 @@
 package net.bmjo.armortip.util;
 
-import net.minecraft.screen.slot.Slot;
+import net.minecraft.world.inventory.Slot;
 
 public interface ISlotScreen {
-    Slot getFocusedSlot();
+    Slot getHoveredSlot();
 }

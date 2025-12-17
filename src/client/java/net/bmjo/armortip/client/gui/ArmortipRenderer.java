@@ -1,27 +1,26 @@
 package net.bmjo.armortip.client.gui;
 
-import net.bmjo.armortip.Armortip;
+import com.mojang.math.Constants;
 import net.bmjo.armortip.util.ArmortipUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.block.DyedCarpetBlock;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.ingame.InventoryScreen;
-import net.minecraft.client.gui.tooltip.TooltipBackgroundRenderer;
-import net.minecraft.client.gui.tooltip.TooltipPositioner;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.passive.AnimalEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.*;
-import net.minecraft.item.trim.ArmorTrim;
-import net.minecraft.item.trim.ArmorTrimMaterials;
-import net.minecraft.item.trim.ArmorTrimPatterns;
-import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipPositioner;
+import net.minecraft.client.gui.screens.inventory.tooltip.TooltipRenderUtil;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.*;
+import net.minecraft.world.item.armortrim.ArmorTrim;
+import net.minecraft.world.item.armortrim.TrimMaterials;
+import net.minecraft.world.item.armortrim.TrimPatterns;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.WoolCarpetBlock;
 import org.joml.Quaternionf;
-import org.joml.Vector2ic;
 import org.joml.Vector3f;
 
 import java.util.HashMap;
@@ -30,246 +29,155 @@ import java.util.Map;
 
 @Environment(EnvType.CLIENT)
 public class ArmortipRenderer {
-    private static final Map<EntityType<?>, AnimalEntity> CACHE = new HashMap<>();
-    protected static final int SIZE = 24;
-    public static final int WIDTH = SIZE;
-    public static final int HEIGHT = SIZE * 2;
-    public static final int MARGIN = 6;
-    public static int time;
+    private static final Item[] DEFAULT_ARMOR = {Items.NETHERITE_BOOTS, Items.NETHERITE_LEGGINGS, Items.NETHERITE_CHESTPLATE, Items.NETHERITE_HELMET};
+    private static final Map<EntityType<?>, Mob> CACHE = new HashMap<>();
 
-    public static void renderArmorTip(DrawContext drawContext, ItemStack armorStack, int mouseX, int mouseY, PlayerEntity player, TooltipPositioner tooltipPositioner, boolean drawBG) {
+    public static void renderArmorTip(GuiGraphics guiGraphics, ItemStack armorStack, int mouseX, int mouseY, Player player, ClientTooltipPositioner tooltipPositioner, boolean drawBG) {
         if (!(ArmortipUtil.isTipItem(armorStack)))
             return;
-        Vector2ic vector2ic = tooltipPositioner.getPosition(drawContext.getScaledWindowWidth(), drawContext.getScaledWindowHeight(), mouseX, mouseY, WIDTH, HEIGHT);
+        var vector2ic = tooltipPositioner.positionTooltip(guiGraphics.guiWidth(), guiGraphics.guiHeight(), mouseX, mouseY, ArmortipUtil.WIDTH, ArmortipUtil.HEIGHT);
 
-        int startX = vector2ic.x();
-        int startY = vector2ic.y();
-        drawContext.getMatrices().push();
+        int x = vector2ic.x();
+        int y = vector2ic.y();
+        guiGraphics.pose().pushPose();
 
         if (drawBG)
-            TooltipBackgroundRenderer.render(drawContext, startX, startY, WIDTH, HEIGHT, 400);
-        drawContext.getMatrices().translate(0.0F, 0.0F, 400.0F);
+            TooltipRenderUtil.renderTooltipBackground(guiGraphics, x, y, ArmortipUtil.WIDTH + ArmortipUtil.MARGIN * 2, ArmortipUtil.HEIGHT, 400);
+        guiGraphics.pose().translate(0.0F, 0.0F, 400.0F);
 
-        renderEquipment(player, drawContext, armorStack, startX, startY);
-        drawContext.getMatrices().pop();
+        renderEquipment(player, guiGraphics, armorStack, x, y);
+        guiGraphics.pose().popPose();
     }
 
-    private static void renderEquipment(PlayerEntity player, DrawContext drawContext, ItemStack itemStack, int x, int y) {
-        try {
-            if (itemStack.getItem() instanceof Equipment equipment) {
-                var slot = equipment.getSlotType();
+    private static void renderEquipment(Player player, GuiGraphics guiGraphics, ItemStack itemStack, int x, int y) {
+        switch (itemStack.getItem()) {
+            case Equipable equipable -> {
+                var slot = equipable.getEquipmentSlot();
                 switch (slot.getType()) {
-                    case HAND -> renderPlayerWithEquipment(player, drawContext, itemStack, slot, x, y);
-                    case HUMANOID_ARMOR -> renderPlayerWithArmor(player, drawContext, itemStack, slot, x, y);
-                    case ANIMAL_ARMOR -> renderAnimalWithArmor(player, drawContext, itemStack, x, y);
-                    default -> throw new IllegalArgumentException("Item is not an equipment item");
+                    case HAND -> renderPlayerEquipment(player, guiGraphics, itemStack, slot, x, y);
+                    case HUMANOID_ARMOR -> renderPlayerArmor(player, guiGraphics, itemStack, slot, x, y);
+                    case ANIMAL_ARMOR -> renderAnimal(player, guiGraphics, itemStack, x, y);
                 }
-            } else if (itemStack.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof Equipment equipment) {
-                var slot = equipment.getSlotType();
-                switch (slot.getType()) {
-                    case HAND -> renderPlayerWithEquipment(player, drawContext, itemStack, slot, x, y);
-                    case HUMANOID_ARMOR -> renderPlayerWithArmor(player, drawContext, itemStack, slot, x, y);
-                    case ANIMAL_ARMOR -> renderAnimalWithArmor(player, drawContext, itemStack, x, y);
-                    default -> throw new IllegalArgumentException("Item is not an equipment item");
-                }
-            } else if (itemStack.getItem() instanceof SmithingTemplateItem) {
-                renderPlayerWithArmorTrim(player, drawContext, itemStack, x, y);
             }
-        } catch (IllegalArgumentException e) {
-            Armortip.LOGGER.error("Item is not an equipment item", e);
+            case BlockItem blockItem when blockItem.getBlock() instanceof Equipable equipable -> {
+                var slot = equipable.getEquipmentSlot();
+                switch (slot.getType()) {
+                    case HAND -> renderPlayerEquipment(player, guiGraphics, itemStack, slot, x, y);
+                    case HUMANOID_ARMOR -> renderPlayerArmor(player, guiGraphics, itemStack, slot, x, y);
+                    case ANIMAL_ARMOR -> renderAnimal(player, guiGraphics, itemStack, x, y);
+                }
+            }
+            case SmithingTemplateItem ignored ->
+                    renderArmorTrim(player, guiGraphics, itemStack, x, y);
+            default -> {
+            }
         }
     }
 
-    private static void renderPlayerWithArmor(PlayerEntity player, DrawContext drawContext, ItemStack itemStack, EquipmentSlot slot, int x, int y) {
+    private static void renderPlayerArmor(Player player, GuiGraphics guiGraphics, ItemStack itemStack, EquipmentSlot slot, int x, int y) {
         if (slot.getType() != EquipmentSlot.Type.HUMANOID_ARMOR)
-            throw new IllegalArgumentException("Item is not an armor equipment item");
-        DefaultedList<ItemStack> inventory = player.getInventory().armor;
-        int slotId = slot.getEntitySlotId();
-        ItemStack originalArmor = inventory.get(slotId);
-
-        float bodyYaw = player.bodyYaw;
-        float yaw = player.getYaw();
-        float pitch = player.getPitch();
-        float headYaw = player.headYaw;
-        float prevHeadYaw = player.prevHeadYaw;
-
-        float yRot = (float) Math.atan(80 * Math.cos(time / 300.0F) / 40.0F);
-        float xRot = (float) Math.atan(20 * Math.sin(2 * time / 300.0F) / 40.0F);
-        time++;
-        time %= (int) (2 * Math.PI * 300.0F);
-
-        float size = 42 / Math.max(player.getWidth(), player.getHeight());
-
-        Quaternionf quaternionf = new Quaternionf().rotateZ(3.1415927F);
-        Quaternionf quaternionf2 = new Quaternionf().rotateX(xRot * 20.0F * 0.017453292F);
-        quaternionf.mul(quaternionf2);
-
-        try {
-            inventory.set(slotId, itemStack);
-
-            player.bodyYaw = 180.0F + yRot * 10.0F;
-            player.setYaw(180.0F + yRot * 20.0F);
-            player.setPitch(-xRot * 10.0F);
-            player.headYaw = player.getYaw();
-            player.prevHeadYaw = player.getYaw();
-
-            InventoryScreen.drawEntity(drawContext, x + WIDTH / 2.0F, y + HEIGHT, size, new Vector3f(0, 0, 0), quaternionf, quaternionf2, player);
-        } finally {
-            inventory.set(slotId, originalArmor);
-
-            player.bodyYaw = bodyYaw;
-            player.setYaw(yaw);
-            player.setPitch(pitch);
-            player.headYaw = headYaw;
-            player.prevHeadYaw = prevHeadYaw;
-        }
+            return;
+        var inventory = player.getInventory().armor;
+        int slotId = slot.getIndex();
+        var originalArmor = inventory.get(slotId);
+        inventory.set(slotId, itemStack);
+        renderEntity(player, guiGraphics, x, y);
+        inventory.set(slotId, originalArmor);
     }
 
-    private static void renderPlayerWithEquipment(PlayerEntity player, DrawContext drawContext, ItemStack itemStack, EquipmentSlot slot, int x, int y) {
+    private static void renderPlayerEquipment(Player player, GuiGraphics guiGraphics, ItemStack itemStack, EquipmentSlot slot, int x, int y) {
         if (slot != EquipmentSlot.MAINHAND && slot != EquipmentSlot.OFFHAND)
-            throw new IllegalArgumentException("Item is not a hand equipment item");
-        DefaultedList<ItemStack> inventory = slot == EquipmentSlot.MAINHAND ? player.getInventory().main : player.getInventory().offHand;
-        ItemStack originalArmor = inventory.get(0);
-
-        float bodyYaw = player.bodyYaw;
-        float yaw = player.getYaw();
-        float pitch = player.getPitch();
-        float headYaw = player.headYaw;
-        float prevHeadYaw = player.prevHeadYaw;
-
-        float yRot = (float) Math.atan(80 * Math.cos(time / 300.0F) / 40.0F);
-        float xRot = (float) Math.atan(20 * Math.sin(2 * time / 300.0F) / 40.0F);
-        time++;
-        time %= (int) (2 * Math.PI * 300.0F);
-
-        float size = 42 / Math.max(player.getWidth(), player.getHeight());
-
-        Quaternionf quaternionf = new Quaternionf().rotateZ(3.1415927F);
-        Quaternionf quaternionf2 = new Quaternionf().rotateX(xRot * 20.0F * 0.017453292F);
-        quaternionf.mul(quaternionf2);
-
-        try {
-            inventory.set(0, itemStack);
-
-            player.bodyYaw = 180.0F + yRot * 10.0F;
-            player.setYaw(180.0F + yRot * 20.0F);
-            player.setPitch(-xRot * 10.0F);
-            player.headYaw = player.getYaw();
-            player.prevHeadYaw = player.getYaw();
-
-            InventoryScreen.drawEntity(drawContext, x + WIDTH / 2.0F, y + HEIGHT, size, new Vector3f(0, 0, 0), quaternionf, quaternionf2, player);
-        } finally {
-            inventory.set(0, originalArmor);
-
-            player.bodyYaw = bodyYaw;
-            player.setYaw(yaw);
-            player.setPitch(pitch);
-            player.headYaw = headYaw;
-            player.prevHeadYaw = prevHeadYaw;
-        }
+            return;
+        var inventory = slot == EquipmentSlot.MAINHAND ? player.getInventory().items : player.getInventory().offhand;
+        ItemStack originalArmor = inventory.getFirst();
+        inventory.set(0, itemStack);
+        renderEntity(player, guiGraphics, x, y);
+        inventory.set(0, originalArmor);
     }
 
-    private static void renderPlayerWithArmorTrim(PlayerEntity player, DrawContext drawContext, ItemStack itemStack, int x, int y) {
-        DefaultedList<ItemStack> armor = player.getInventory().armor;
+    private static void renderArmorTrim(Player player, GuiGraphics guiGraphics, ItemStack itemStack, int x, int y) {
+        var armor = player.getInventory().armor;
+        var originalArmor = List.copyOf(armor);
 
-        List<ItemStack> originalArmor = List.copyOf(armor);
-
-        float bodyYaw = player.bodyYaw;
-        float yaw = player.getYaw();
-        float pitch = player.getPitch();
-        float headYaw = player.headYaw;
-        float prevHeadYaw = player.prevHeadYaw;
-
-        float yRot = (float) Math.atan(80 * Math.cos(time / 300.0F) / 40.0F);
-        float xRot = (float) Math.atan(20 * Math.sin(2 * time / 300.0F) / 40.0F);
-        time++;
-        time %= (int) (2 * Math.PI * 300.0F);
-
-        float size = 42 / Math.max(player.getWidth(), player.getHeight());
-
-        Quaternionf quaternionf = new Quaternionf().rotateZ(3.1415927F);
-        Quaternionf quaternionf2 = new Quaternionf().rotateX(xRot * 20.0F * 0.017453292F);
-        quaternionf.mul(quaternionf2);
-
-        var wrapperLookup = MinecraftClient.getInstance().world.getRegistryManager();
-        var optMaterial = ArmorTrimMaterials.get(wrapperLookup, Items.DIAMOND.getDefaultStack());
-        var optPattern = ArmorTrimPatterns.get(wrapperLookup, itemStack);
+        var wrapperLookup = player.level().registryAccess();
+        var optMaterial = TrimMaterials.getFromIngredient(wrapperLookup, Items.DIAMOND.getDefaultInstance());
+        var optPattern = TrimPatterns.getFromTemplate(wrapperLookup, itemStack);
 
         if (optMaterial.isEmpty() || optPattern.isEmpty()) return;
 
-        try {
-            for (int i = 0; i < armor.size(); i++) {
-                ItemStack trimStack = armor.get(i).copy();
-                trimStack.set(DataComponentTypes.TRIM, new ArmorTrim(optMaterial.get(), optPattern.get()));
+        for (int i = 0; i < armor.size(); i++) {
+            var trimStack = armor.get(i).copy();
+            if (trimStack.isEmpty()) {
+                var armorStack = DEFAULT_ARMOR[i].getDefaultInstance();
+                armorStack.set(DataComponents.TRIM, new ArmorTrim(optMaterial.get(), optPattern.get()));
+                armor.set(i, armorStack);
+            } else {
+                trimStack.set(DataComponents.TRIM, new ArmorTrim(optMaterial.get(), optPattern.get()));
                 armor.set(i, trimStack);
             }
-
-            player.bodyYaw = 180.0F + yRot * 10.0F;
-            player.setYaw(180.0F + yRot * 20.0F);
-            player.setPitch(-xRot * 10.0F);
-            player.headYaw = player.getYaw();
-            player.prevHeadYaw = player.getYaw();
-
-            InventoryScreen.drawEntity(drawContext, x + WIDTH / 2.0F, y + HEIGHT, size, new Vector3f(0, 0, 0), quaternionf, quaternionf2, player);
-        } finally {
-            for (int i = 0; i < armor.size(); i++) {
-                armor.set(i, originalArmor.get(i));
-            }
-
-            player.bodyYaw = bodyYaw;
-            player.setYaw(yaw);
-            player.setPitch(pitch);
-            player.headYaw = headYaw;
-            player.prevHeadYaw = prevHeadYaw;
+        }
+        renderEntity(player, guiGraphics, x, y);
+        for (int i = 0; i < armor.size(); i++) {
+            armor.set(i, originalArmor.get(i));
         }
     }
 
-    private static void renderAnimalWithArmor(PlayerEntity player, DrawContext drawContext, ItemStack itemStack, int x, int y) {
+    private static void renderAnimal(Player player, GuiGraphics guiGraphics, ItemStack itemStack, int x, int y) {
         if (itemStack.getItem() instanceof AnimalArmorItem animalArmorItem) {
-            AnimalArmorItem.Type type = animalArmorItem.getType();
+            var type = animalArmorItem.getBodyType();
             switch (type) {
-                case EQUESTRIAN -> renderAnimalWithArmor(player, EntityType.HORSE, drawContext, itemStack, x, y);
-                case CANINE -> renderAnimalWithArmor(player, EntityType.WOLF, drawContext, itemStack, x, y);
-                default -> throw new IllegalArgumentException("Item is not an animal armor item");
+                case EQUESTRIAN -> renderAnimal(player, EntityType.HORSE, guiGraphics, itemStack, x, y);
+                case CANINE -> renderAnimal(player, EntityType.WOLF, guiGraphics, itemStack, x, y);
             }
-        } else if (itemStack.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof DyedCarpetBlock) {
-            renderAnimalWithArmor(player, EntityType.LLAMA, drawContext, itemStack, x, y);
-        } else
-            throw new IllegalArgumentException("Item is not an animal armor item");
+        } else if (itemStack.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof WoolCarpetBlock) {
+            renderAnimal(player, EntityType.LLAMA, guiGraphics, itemStack, x, y);
+        }
     }
 
-    private static <E extends AnimalEntity> void renderAnimalWithArmor(PlayerEntity player, EntityType<E> animalType, DrawContext drawContext, ItemStack armorStack, int x, int y) {
-        E animal = getCached(player, animalType);
+    private static void renderAnimal(Player player, EntityType<? extends Mob> animalType, GuiGraphics guiGraphics, ItemStack armorStack, int x, int y) {
+        var animal = getCached(player.level(), animalType);
         if (animal == null)
             return;
-
-        animal.equipBodyArmor(armorStack);
-
-        float yRot = (float) Math.atan(80 * Math.cos(time / 300.0F) / 40.0F);
-        float xRot = (float) Math.atan(20 * Math.sin(2 * time / 300.0F) / 40.0F);
-        time++;
-        time %= (int) (2 * Math.PI * 300.0F);
-
-        animal.prevBodyYaw = animal.bodyYaw;
-        animal.prevHeadYaw = animal.headYaw;
-        animal.prevPitch = animal.getYaw();
-
-        animal.bodyYaw = 225.0F + yRot * 10.0F;
-        animal.setHeadYaw(180.0F + yRot * 20.0F);
-        animal.setPitch(-xRot * 10.0F);
-
-        float size = 42 / Math.max(animal.getWidth(), animal.getHeight());
-
-        Quaternionf quaternionf = new Quaternionf().rotateZ((float) Math.PI);
-        Quaternionf quaternionf2 = new Quaternionf().rotateX(xRot * 20.0F * 0.017453292F);
-        quaternionf.mul(quaternionf2);
-
-        InventoryScreen.drawEntity(drawContext, x + WIDTH / 2.0F, y + HEIGHT, size, new Vector3f(0, 0, 0), quaternionf, new Quaternionf(), animal);
-
-        animal.equipBodyArmor(ItemStack.EMPTY);
+        animal.setBodyArmorItem(armorStack);
+        renderEntity(animal, guiGraphics, x, y);
+        animal.setBodyArmorItem(ItemStack.EMPTY);
     }
 
-    private static <E extends AnimalEntity> E getCached(PlayerEntity player, EntityType<E> type) {
-        return (E) CACHE.computeIfAbsent(type, t -> (AnimalEntity) t.create(player.getWorld()));
+    private static void renderEntity(LivingEntity entity, GuiGraphics guiGraphics, int x, int y) {
+        float yBodyRot = entity.yBodyRot;
+        float yaw = entity.getYRot();
+        float pitch = entity.getXRot();
+        float yHeadRot = entity.yHeadRot;
+        float yHeadRotO = entity.yHeadRotO;
+
+        float yRot = (float) Math.atan(80 * Math.cos(ArmortipUtil.ticks / 60.0F) / 40.0F);
+        float xRot = (float) Math.atan(20 * Math.sin(2 * ArmortipUtil.ticks / 60.0F) / 40.0F);
+
+        var size = ArmortipUtil.HEIGHT * 0.8F / Math.max(entity.getBbWidth(), entity.getBbHeight());
+        if (!(entity instanceof Player)) {
+            size *= 0.8F;
+        }
+
+        Quaternionf quaternionf = new Quaternionf().rotateZ(Constants.PI);
+        Quaternionf quaternionf2 = new Quaternionf().rotateX(xRot * 20.0F * Constants.DEG_TO_RAD);
+        quaternionf.mul(quaternionf2);
+
+        entity.yBodyRot = 200.0F + yRot * 10.0F;
+        entity.setYRot(180.0F + yRot * 10.0F);
+        entity.setXRot(-xRot * 10.0F);
+        entity.yHeadRot = entity.getYRot();
+        entity.yHeadRotO = entity.getYRot();
+
+        InventoryScreen.renderEntityInInventory(guiGraphics, x + ArmortipUtil.MARGIN + ArmortipUtil.WIDTH / 2.0F, y + ArmortipUtil.HEIGHT, size, new Vector3f(0, 0, 0), quaternionf, quaternionf2, entity);
+
+        entity.yBodyRot = yBodyRot;
+        entity.setYRot(yaw);
+        entity.setXRot(pitch);
+        entity.yHeadRot = yHeadRot;
+        entity.yHeadRotO = yHeadRotO;
+    }
+
+    private static Mob getCached(Level level, EntityType<? extends Mob> type) {
+        return CACHE.computeIfAbsent(type, t -> (Mob) t.create(level));
     }
 }

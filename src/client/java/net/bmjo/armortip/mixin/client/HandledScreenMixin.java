@@ -1,21 +1,20 @@
 package net.bmjo.armortip.mixin.client;
 
 import net.bmjo.armortip.util.ISlotScreen;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.screen.slot.Slot;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.world.inventory.Slot;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
-@Mixin(HandledScreen.class)
+@Mixin(AbstractContainerScreen.class)
 public class HandledScreenMixin implements ISlotScreen {
-
     @Shadow
     @Nullable
-    protected Slot focusedSlot;
+    protected Slot hoveredSlot;
 
     @Override
-    public @Nullable Slot getFocusedSlot() {
-        return focusedSlot;
+    public @Nullable Slot getHoveredSlot() {
+        return hoveredSlot;
     }
 }

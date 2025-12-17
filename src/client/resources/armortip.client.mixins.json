@@ -5,7 +5,7 @@
   "plugin": "net.bmjo.armortip.mixin.plugin.ConditionalMixinPlugin",
   "client": [
     "ContainerScreenMixin",
-    "DrawContextMixin",
+    "GuiGraphicsMixin",
     "HandledScreenMixin"
   ],
   "injectors": {
