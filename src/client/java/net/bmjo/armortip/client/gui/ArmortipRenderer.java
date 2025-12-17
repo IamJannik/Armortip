@@ -164,7 +164,7 @@ public class ArmortipRenderer {
         if (item == null) return;
 
         guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate(x + ArmortipUtil.SIZE, y, 0);
+        guiGraphics.pose().translate(x + ArmortipUtil.SIZE - ArmortipUtil.MARGIN, y, 0);
         guiGraphics.pose().scale(0.5F, 0.5F, 0.5F);
         guiGraphics.renderFakeItem(item.getDefaultInstance(), 0, 0);
         guiGraphics.pose().popPose();
