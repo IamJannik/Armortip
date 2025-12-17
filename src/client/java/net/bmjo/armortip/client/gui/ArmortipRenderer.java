@@ -33,11 +33,12 @@ import java.util.Map;
 
 @Environment(EnvType.CLIENT)
 public class ArmortipRenderer {
+    private static final EquipmentSlot[] ARMOR_SLOTS = {EquipmentSlot.FEET, EquipmentSlot.LEGS, EquipmentSlot.CHEST, EquipmentSlot.HEAD};
     private static final Item[] DEFAULT_ARMOR = {Items.NETHERITE_BOOTS, Items.NETHERITE_LEGGINGS, Items.NETHERITE_CHESTPLATE, Items.NETHERITE_HELMET};
     private static final Map<EntityType<?>, Mob> ENTITY_CACHE = new HashMap<>();
     private static final Map<Item, Holder<TrimPattern>> PATTERN_CACHE = new HashMap<>();
     private static List<Holder.Reference<TrimMaterial>> MATERIAL_CACHE;
-    private static final Map<Holder<TrimMaterial>, Item> ITEM_CACHE = new HashMap<>();
+    private static final Map<Holder<TrimMaterial>, Holder<Item>> ITEM_CACHE = new HashMap<>();
 
     public static void renderArmorTip(GuiGraphics guiGraphics, ItemStack armorStack, int mouseX, int mouseY, Player player, ClientTooltipPositioner tooltipPositioner, boolean drawBG) {
         if (!(ArmortipUtil.isTipItem(armorStack)))
@@ -73,7 +74,7 @@ public class ArmortipRenderer {
             var slot = equippableComponent.slot();
             switch (slot.getType()) {
                 case HAND, HUMANOID_ARMOR -> renderPlayer(player, itemStack, slot, guiGraphics, x, y);
-                case ANIMAL_ARMOR -> renderAnimal(player, itemStack, equippableComponent, slot, guiGraphics, x, y);
+                case ANIMAL_ARMOR, SADDLE -> renderAnimal(player, itemStack, equippableComponent, slot, guiGraphics, x, y);
             }
             return;
         }
@@ -102,27 +103,23 @@ public class ArmortipRenderer {
     private static void renderTrim(Player player, ItemStack itemStack, GuiGraphics guiGraphics, int x, int y) {
         var material = getCachedTrimMaterial(player.level());
         var pattern = getCachedTrimPattern(player.level(), itemStack.getItem());
-
         if (material == null || pattern == null) return;
 
-        var armor = player.getInventory().armor;
-        var originalArmor = List.copyOf(armor);
-        for (int i = 0; i < armor.size(); i++) {
-            var trimStack = armor.get(i).copy();
-            if (trimStack.isEmpty()) {
+        ItemStack[] originalArmor = new ItemStack[4];
+        for (int i = 0; i < ARMOR_SLOTS.length; i++) originalArmor[i] = player.getItemBySlot(ARMOR_SLOTS[i]).copy();
+        for (int i = 0; i < ARMOR_SLOTS.length; i++) {
+            var equipStack = player.getItemBySlot(ARMOR_SLOTS[i]);
+            if (equipStack.isEmpty()) {
                 var armorStack = DEFAULT_ARMOR[i].getDefaultInstance();
                 armorStack.set(DataComponents.TRIM, new ArmorTrim(material, pattern));
-                armor.set(i, armorStack);
+                player.setItemSlot(ARMOR_SLOTS[i], armorStack);
             } else {
-                trimStack.set(DataComponents.TRIM, new ArmorTrim(material, pattern));
-                armor.set(i, trimStack);
+                equipStack.set(DataComponents.TRIM, new ArmorTrim(material, pattern));
             }
         }
         renderEntity(player, guiGraphics, x, y);
         renderMaterial(material, player.level(), guiGraphics, x, y);
-        for (int i = 0; i < armor.size(); i++) {
-            armor.set(i, originalArmor.get(i));
-        }
+        for (int i = 0; i < ARMOR_SLOTS.length; i++) player.setItemSlot(ARMOR_SLOTS[i], originalArmor[i]);
     }
 
     private static void renderEntity(LivingEntity entity, GuiGraphics guiGraphics, int x, int y) {
@@ -160,13 +157,13 @@ public class ArmortipRenderer {
     }
 
     private static void renderMaterial(Holder<TrimMaterial> material, Level level, GuiGraphics guiGraphics, int x, int y) {
-        var item = getCachedMaterialItem(material);
+        var item = getCachedMaterialItem(level, material);
         if (item == null) return;
 
         guiGraphics.pose().pushPose();
         guiGraphics.pose().translate(x + ArmortipUtil.SIZE - ArmortipUtil.MARGIN, y, 0);
         guiGraphics.pose().scale(0.5F, 0.5F, 0.5F);
-        guiGraphics.renderFakeItem(item.getDefaultInstance(), 0, 0);
+        guiGraphics.renderFakeItem(item.value().getDefaultInstance(), 0, 0);
         guiGraphics.pose().popPose();
     }
 
@@ -194,9 +191,15 @@ public class ArmortipRenderer {
         return MATERIAL_CACHE.get((ArmortipUtil.ticks / 40) % MATERIAL_CACHE.size());
     }
 
-    private static Item getCachedMaterialItem(Holder<TrimMaterial> material) {
-        return ITEM_CACHE.computeIfAbsent(material, m ->
-            m.value().ingredient().value()
-        );
+    private static Holder<Item> getCachedMaterialItem(Level level, Holder<TrimMaterial> material) {
+        return ITEM_CACHE.computeIfAbsent(material, m -> {
+            var registryAccess = level.registryAccess();
+            var registry = registryAccess.lookupOrThrow(Registries.ITEM);
+            return registry.listElements().filter(item -> {
+                var materialProvider = item.value().getDefaultInstance().get(DataComponents.PROVIDES_TRIM_MATERIAL);
+                if (materialProvider == null) return false;
+                var itemMaterial = materialProvider.unwrap(registryAccess);
+                return itemMaterial.map(trimMaterialHolder -> trimMaterialHolder.value().equals(m.value())).orElse(false);
+            }).findFirst().orElse(null);});
     }
 }
