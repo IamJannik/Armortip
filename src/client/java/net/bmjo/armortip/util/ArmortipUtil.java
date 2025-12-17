@@ -2,22 +2,20 @@ package net.bmjo.armortip.util;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.Equipable;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.SmithingTemplateItem;
 import org.jetbrains.annotations.Nullable;
 
 public class ArmortipUtil {
-    protected static final int SIZE = 24;
-    public static final int WIDTH = SIZE;
-    public static final int HEIGHT = SIZE * 2;
+    public static final int SIZE = 48;
     public static final int MARGIN = 6;
     public static int ticks;
 
     public static boolean isTipItem(ItemStack itemStack) {
-        return itemStack.getItem() instanceof Equipable || itemStack.getItem() instanceof SmithingTemplateItem || itemStack.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof Equipable;
+        return itemStack.get(DataComponents.EQUIPPABLE) != null
+                || itemStack.getItem() instanceof SmithingTemplateItem;
     }
 
     public static boolean shouldExtend() {

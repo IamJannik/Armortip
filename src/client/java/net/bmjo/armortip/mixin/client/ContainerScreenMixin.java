@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(AbstractContainerScreen.class)
 public class ContainerScreenMixin {
-    @Inject(method = "renderTooltip", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;renderTooltip(Lnet/minecraft/client/gui/Font;Ljava/util/List;Ljava/util/Optional;II)V", shift = At.Shift.AFTER))
+    @Inject(method = "renderTooltip", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;renderTooltip(Lnet/minecraft/client/gui/Font;Ljava/util/List;Ljava/util/Optional;IILnet/minecraft/resources/ResourceLocation;)V", shift = At.Shift.AFTER))
     public void renderArmorTip(GuiGraphics guiGraphics, int i, int j, CallbackInfo ci, @Local ItemStack itemStack) {
         if (ArmortipUtil.isTipItem(itemStack)) {
             if (FabricLoader.getInstance().isModLoaded("legendarytooltips"))

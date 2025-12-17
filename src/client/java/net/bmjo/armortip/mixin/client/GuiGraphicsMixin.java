@@ -13,11 +13,11 @@ public class GuiGraphicsMixin {
     // from bytecode
     @ModifyVariable(method = "renderTooltipInternal", ordinal = 4, at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;guiHeight()I", shift = At.Shift.AFTER))
     private int setWidth(int width) {
-        return ArmortipUtil.shouldExtend() ? width + ArmortipUtil.WIDTH + ArmortipUtil.MARGIN * 2 : width;
+        return ArmortipUtil.shouldExtend() ? width + ArmortipUtil.SIZE + ArmortipUtil.MARGIN : width;
     }
 
     @ModifyVariable(method = "renderTooltipInternal", ordinal = 5, at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;guiHeight()I", shift = At.Shift.AFTER))
     private int setHeight(int height) {
-        return ArmortipUtil.shouldExtend() ? Math.max(height, ArmortipUtil.HEIGHT) : height;
+        return ArmortipUtil.shouldExtend() ? Math.max(height, ArmortipUtil.SIZE) : height;
     }
 }
