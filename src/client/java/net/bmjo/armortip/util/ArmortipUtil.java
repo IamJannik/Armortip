@@ -11,6 +11,8 @@ import org.jetbrains.annotations.Nullable;
 public class ArmortipUtil {
     public static final int SIZE = 48;
     public static final int MARGIN = 6;
+    public static final int PADDING_X = 0;
+    public static final int PADDING_Y = 124;
     public static int ticks;
 
     public static boolean isTipItem(ItemStack itemStack) {
