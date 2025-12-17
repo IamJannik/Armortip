@@ -12,7 +12,10 @@ import net.minecraft.client.render.entity.state.EntityRenderState;
 import net.minecraft.client.render.entity.state.LivingEntityRenderState;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.EquippableComponent;
-import net.minecraft.entity.*;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.passive.AbstractHorseEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
@@ -64,7 +67,7 @@ public class ArmorTooltipComponent implements TooltipComponent {
             ClientPlayerEntity player = MinecraftClient.getInstance().player;
             if (player == null)
                 return;
-            if (itemStack.getItem() instanceof SmithingTemplateItem)
+            if (this.itemStack.getItem() instanceof SmithingTemplateItem)
                 this.renderTrim(player, x, y, width, context);
             else
                 this.renderEquipment(player, x, y, width, context);
@@ -120,8 +123,8 @@ public class ArmorTooltipComponent implements TooltipComponent {
                 itemStack.set(DataComponentTypes.TRIM, new ArmorTrim(material, pattern));
             }
         }
-        renderEntity(player, x, y, width, drawContext);
-        renderMaterial(material, x, y, width, drawContext, player.getEntityWorld());
+        this.renderEntity(player, x, y, width, drawContext);
+        this.renderMaterial(material, x, y, width, drawContext, player.getEntityWorld());
         for (int i = 0; i < ARMOR_SLOTS.length; i++) player.equipStack(ARMOR_SLOTS[i], originalArmor[i]);
     }
 
@@ -156,7 +159,7 @@ public class ArmorTooltipComponent implements TooltipComponent {
             livingEntityRenderState.height /= livingEntityRenderState.baseScale;
             livingEntityRenderState.baseScale = 1;
         }
-        drawContext.addEntity(entityRenderState, size, vector3f, quaternionf, quaternionf2, -ArmortipUtil.PADDING + x  + width - ArmortipUtil.SIZE, -ArmortipUtil.PADDING + y - 10, ArmortipUtil.PADDING + x + width, ArmortipUtil.PADDING + y - 10 + ArmortipUtil.SIZE);
+        drawContext.addEntity(entityRenderState, size, vector3f, quaternionf, quaternionf2, -ArmortipUtil.PADDING_X + x + width - ArmortipUtil.SIZE, -ArmortipUtil.PADDING_Y + y - 10, -ArmortipUtil.PADDING_X + x + width, ArmortipUtil.PADDING_Y + y - 10 + ArmortipUtil.SIZE);
     }
 
     private void renderMaterial(RegistryEntry<ArmorTrimMaterial> material, int x, int y, int width, DrawContext drawContext, World world) {
