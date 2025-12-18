@@ -179,6 +179,9 @@ public class ArmorTooltipComponent implements ClientTooltipComponent {
         var entityRenderManager = Minecraft.getInstance().getEntityRenderDispatcher();
         var entityRenderer = entityRenderManager.getRenderer(entity);
         var entityRenderState = entityRenderer.createRenderState(entity, 1.0F);
+        entityRenderState.lightCoords = 15728880;
+        entityRenderState.shadowPieces.clear();
+        entityRenderState.outlineColor = 0;
         return entityRenderState;
     }
 
