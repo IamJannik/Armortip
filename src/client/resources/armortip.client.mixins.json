@@ -1,10 +1,10 @@
 {
   "required": true,
   "package": "net.bmjo.armortip.mixin.client",
-  "compatibilityLevel": "JAVA_17",
+  "compatibilityLevel": "JAVA_25",
   "client": [
     "ContainerScreenMixin",
-    "GuiGraphicsMixin",
+    "GuiMixin",
     "ItemMixin",
     "TooltipComponentMixin"
   ],

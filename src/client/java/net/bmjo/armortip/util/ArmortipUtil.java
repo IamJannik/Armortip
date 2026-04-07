@@ -18,6 +18,8 @@ public class ArmortipUtil {
     public static boolean isTipItem(ItemStack itemStack) {
         return itemStack.get(DataComponents.EQUIPPABLE) != null
                 || itemStack.getItem() instanceof SmithingTemplateItem;
+                //|| itemStack.has(DataComponents.PROVIDES_BANNER_PATTERNS)
+                //|| itemStack.has(DataComponents.ENTITY_DATA);
     }
 
     public static boolean shouldExtend() {
